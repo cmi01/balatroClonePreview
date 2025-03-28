@@ -5,63 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wizard's Hand</title>
     <style>
+        /* --- General Styles --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #282c34;
+            background-color: #1e2127; /* Darker background */
             color: #abb2bf;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            padding-top: 20px;
-            user-select: none; /* Prevent text selection during clicks */
+            padding-top: 15px;
+            user-select: none;
         }
 
         #game-container {
-            background-color: #3a3f4b;
-            padding: 20px;
+            background-color: #282c34; /* Slightly lighter container */
+            padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            width: 90%;
-            max-width: 800px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.6);
+            width: 95%;
+            max-width: 900px; /* Wider to accommodate Jokers */
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
-        #ui-area, #round-info {
+        /* --- Top Info Bars --- */
+        #round-info, #ui-area {
             display: flex;
             justify-content: space-around;
             background-color: #21252b;
-            padding: 10px;
+            padding: 8px 12px;
             border-radius: 5px;
             font-weight: bold;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
-        }
-
-        #round-info {
-             justify-content: center;
-             gap: 20px; /* Space between Trial and Score */
+            flex-wrap: wrap;
+            gap: 10px; /* Add gap for wrapping */
         }
 
         .info-item {
             text-align: center;
-            min-width: 100px; /* Ensure items don't get too squished */
-            padding: 5px 0;
+            min-width: 90px;
+            padding: 4px 0;
         }
 
         .info-value {
             color: #61afef; /* Light blue */
-            font-size: 1.2em;
+            font-size: 1.15em;
+            display: block; /* Ensure value is below label */
+            margin-top: 2px;
+        }
+        .mana-value { color: #e5c07b; } /* Gold for Mana */
+
+        /* --- Message Area --- */
+        #message-area {
+            min-height: 40px;
+            text-align: center;
+            font-size: 1.05em;
+            color: #e5c07b;
+            background-color: #2c313a;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #4f5666;
         }
 
+        /* --- Card Area --- */
         #hand-area {
-            min-height: 100px;
+            min-height: 110px; /* Slightly taller */
             display: flex;
-            flex-wrap: wrap; /* Allow cards to wrap */
+            flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            gap: 10px;
+            gap: 8px; /* Slightly smaller gap */
             padding: 10px;
             background-color: #2c313a;
             border-radius: 5px;
@@ -70,166 +84,230 @@
 
         .card {
             border: 1px solid #abb2bf;
-            padding: 10px 5px;
-            min-width: 60px;
-            height: 85px;
+            padding: 8px 4px;
+            min-width: 55px; /* Slightly smaller */
+            height: 80px;
             text-align: center;
-            border-radius: 5px;
+            border-radius: 4px;
             background-color: #f0f0f0;
             color: #21252b;
             cursor: pointer;
             transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
-            position: relative; /* For absolute positioning of suit */
-            font-size: 1.4em;
+            position: relative;
+            font-size: 1.3em;
             font-weight: bold;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Push rank and suit apart */
+            justify-content: space-between;
+            overflow: hidden; /* Hide potential overflow from enhancements */
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
+        .card:hover { transform: translateY(-4px); }
         .card.selected {
-            border: 2px solid #e5c07b; /* Gold */
+            border: 2px solid #e5c07b;
             box-shadow: 0 0 8px #e5c07b;
-            transform: translateY(-3px);
+            transform: translateY(-2px);
         }
+         .card.selectable-for-ability { /* Highlight for Imbue */
+            border: 2px dashed #98c379;
+            box-shadow: 0 0 6px #98c379;
+         }
 
-        .card-rank {
-             line-height: 1;
+
+        .card-rank { line-height: 1; }
+        .card-suit { font-size: 1.1em; line-height: 1; }
+        .suit-🔥 { color: #e06c75; } .suit-💧 { color: #61afef; }
+        .suit-🌳 { color: #98c379; } .suit-💨 { color: #c678dd; }
+
+        .enhancement-badge {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            font-size: 0.5em;
+            font-weight: bold;
+            padding: 1px 2px;
+            border-radius: 3px;
+            background-color: rgba(0, 0, 0, 0.6);
         }
+        .enhancement-chips { background-color: #e5c07b; color: #000; } /* Gold */
+        .enhancement-mult { background-color: #c678dd; color: #fff; } /* Purple */
 
-        .card-suit {
-            font-size: 1.2em;
-             line-height: 1;
-        }
-
-        /* Suit Colors */
-        .suit-🔥 { color: #e06c75; /* Red */ }
-        .suit-💧 { color: #61afef; /* Blue */ }
-        .suit-🌳 { color: #98c379; /* Green */ }
-        .suit-💨 { color: #c678dd; /* Purple */ }
-
-        /* Rank Colors (Face Cards) */
-        .rank-J, .rank-Q, .rank-K, .rank-A { font-weight: bold; }
-
+        /* --- Action Area --- */
         #action-area {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            align-items: center; /* Align items vertically */
+            gap: 15px;
+            flex-wrap: wrap; /* Allow wrapping */
         }
 
         button {
-            padding: 10px 20px;
-            font-size: 1em;
+            padding: 9px 18px;
+            font-size: 0.95em;
             font-weight: bold;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.2s ease;
-            min-width: 150px;
+            min-width: 120px;
         }
+        button:disabled { cursor: not-allowed; opacity: 0.6; }
 
-        button:disabled {
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
-        #play-button {
-            background-color: #98c379; /* Green */
-            color: #21252b;
-        }
+        #play-button { background-color: #98c379; color: #21252b; }
         #play-button:hover:not(:disabled) { background-color: #a7d48a; }
         #play-button:disabled { background-color: #6a8b55; }
 
-
-        #discard-button {
-            background-color: #e06c75; /* Red */
-            color: #21252b;
-        }
+        #discard-button { background-color: #e06c75; color: #21252b; }
         #discard-button:hover:not(:disabled) { background-color: #eb7f8a; }
         #discard-button:disabled { background-color: #a14d54; }
 
+        #imbue-card-button { background-color: #61afef; color: #21252b; }
+        #imbue-card-button:hover:not(:disabled) { background-color: #7ac0f7; }
+        #imbue-card-button:disabled { background-color: #437aa8; }
 
-        #message-area {
-            min-height: 40px;
-            text-align: center;
-            font-size: 1.1em;
-            color: #e5c07b; /* Gold */
-            background-color: #21252b;
-            padding: 8px;
+        /* --- Familiar (Joker) Area --- */
+        #familiar-area {
+            background-color: #2c313a;
+            padding: 10px;
             border-radius: 5px;
+            min-height: 60px;
+            border: 1px solid #4f5666;
         }
+        #familiar-area h4 { margin: 0 0 8px 0; text-align: center; color: #abb2bf; }
+        #familiar-slots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .familiar-card {
+            border: 1px solid #e5c07b; /* Gold border for Jokers */
+            padding: 5px;
+            min-width: 100px;
+            max-width: 150px;
+            border-radius: 4px;
+            background-color: #3a3f4b;
+            font-size: 0.8em;
+            text-align: center;
+            box-shadow: 0 0 5px rgba(229, 192, 123, 0.5);
+        }
+         .familiar-name { font-weight: bold; color: #e5c07b; margin-bottom: 3px; font-size: 1.1em; }
+         .familiar-desc { font-size: 0.9em; color: #abb2bf; }
 
-        #game-over-overlay, #game-won-overlay {
+        /* --- Overlays (Game Over, Win, Shop) --- */
+        .overlay {
             display: none; /* Hidden by default */
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.85);
             justify-content: center;
             align-items: center;
             text-align: center;
             z-index: 1000;
+            padding: 15px; /* Padding for smaller screens */
+            overflow-y: auto; /* Allow scrolling if content overflows */
         }
-
         .overlay-content {
             background-color: #3a3f4b;
-            padding: 40px;
+            padding: 30px;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            max-width: 600px;
+            width: 90%;
         }
-         .overlay-content h2 {
-             margin-bottom: 20px;
-             color: #e06c75; /* Red for Game Over */
+        .overlay-content h2 { margin-bottom: 15px; }
+        #game-over-overlay h2 { color: #e06c75; }
+        #game-won-overlay h2 { color: #98c379; }
+        #shop-overlay h2 { color: #e5c07b; }
+
+        #new-game-button-lost, #new-game-button-won, #proceed-button {
+             background-color: #61afef; color: #21252b; margin-top: 20px;
          }
-         #game-won-overlay .overlay-content h2 {
-             color: #98c379; /* Green for Win */
+        #new-game-button-lost:hover, #new-game-button-won:hover, #proceed-button:hover {
+             background-color: #7ac0f7;
          }
 
-        #new-game-button {
-             background-color: #61afef; /* Blue */
-             color: #21252b;
-             margin-top: 20px;
+        /* --- Shop Specific Styles --- */
+        #shop-items {
+            display: flex;
+            flex-direction: column; /* Stack items vertically */
+            gap: 15px;
+            margin-top: 20px;
+            align-items: center; /* Center items horizontally */
+        }
+        .shop-item {
+            border: 1px solid #5c6370;
+            padding: 10px 15px;
+            border-radius: 5px;
+            background-color: #282c34;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 450px;
+        }
+        .shop-item-info { text-align: left; flex-grow: 1; margin-right: 15px;}
+        .shop-item-name { font-weight: bold; font-size: 1.1em; }
+        .shop-item-desc { font-size: 0.9em; color: #abb2bf; margin-top: 3px; }
+        .shop-item-cost { font-weight: bold; color: #e5c07b; white-space: nowrap; } /* Gold cost */
+        .shop-item-buy-button {
+            padding: 6px 12px;
+            font-size: 0.9em;
+            background-color: #98c379;
+            color: #21252b;
+            min-width: 70px;
+        }
+         .shop-item-buy-button:disabled {
+             background-color: #6a8b55;
+             opacity: 0.7;
+             cursor: default;
          }
-        #new-game-button:hover { background-color: #7ac0f7; }
+         .shop-item-type-Familiar { border-left: 4px solid #e5c07b; } /* Joker */
+         .shop-item-type-Scroll { border-left: 4px solid #61afef; } /* Tarot */
 
     </style>
 </head>
 <body>
     <div id="game-container">
+        <!-- Top Info Bars -->
         <div id="round-info">
              <div class="info-item">Trial (Ante) <span id="round-display" class="info-value">1</span></div>
              <div class="info-item">Target Score (Blind) <div id="target-score-display" class="info-value">0</div></div>
         </div>
-
         <div id="ui-area">
             <div class="info-item">Score<div id="score-display" class="info-value">0</div></div>
             <div class="info-item">Hands Left<div id="hands-left-display" class="info-value">0</div></div>
             <div class="info-item">Discards Left<div id="discards-left-display" class="info-value">0</div></div>
-            <div class="info-item">Mana<div id="mana-display" class="info-value">0</div></div> <!-- Placeholder for currency -->
+            <div class="info-item">Mana<div id="mana-display" class="info-value mana-value">0</div></div>
         </div>
 
+        <!-- Message Area -->
         <div id="message-area">Welcome to Wizard's Hand! Select cards to play.</div>
 
-        <div id="hand-area">
-            <!-- Cards will be generated here by JavaScript -->
-        </div>
+        <!-- Card Hand -->
+        <div id="hand-area"></div>
 
+        <!-- Action Buttons -->
         <div id="action-area">
             <button id="play-button" disabled>Play Selected Hand</button>
             <button id="discard-button" disabled>Discard Selected</button>
+            <button id="imbue-card-button" disabled>Imbue Card (5 Mana)</button>
         </div>
 
-        <!-- Placeholder for future Jokers/Familiars -->
-        <!-- <div id="familiar-area"><h4>Familiars</h4></div> -->
+        <!-- Familiars (Jokers) Area -->
+        <div id="familiar-area">
+            <h4>Familiars (0/5)</h4>
+            <div id="familiar-slots">
+                <!-- Familiars will be generated here -->
+            </div>
+        </div>
     </div>
 
-    <div id="game-over-overlay">
+    <!-- Overlays -->
+    <div id="game-over-overlay" class="overlay">
          <div class="overlay-content">
              <h2>Trial Failed!</h2>
              <p>Your score was not high enough.</p>
@@ -238,7 +316,7 @@
          </div>
     </div>
 
-    <div id="game-won-overlay">
+    <div id="game-won-overlay" class="overlay">
          <div class="overlay-content">
              <h2>Supreme Archmage!</h2>
              <p>You conquered all the Trials!</p>
@@ -246,48 +324,59 @@
          </div>
     </div>
 
+    <div id="shop-overlay" class="overlay">
+         <div class="overlay-content">
+             <h2>The Arcane Market</h2>
+             <p>Spend your Mana wisely before the next Trial!</p>
+             <p>Current Mana: <span id="shop-mana-display" class="mana-value">0</span></p>
+             <div id="shop-items">
+                 <!-- Shop items will be generated here -->
+             </div>
+             <button id="proceed-button">Proceed to Next Trial</button>
+         </div>
+    </div>
+
 
     <script>
+        // --- Constants and Definitions ---
         const SUITS = ['🔥', '💧', '🌳', '💨']; // Fire, Water, Earth, Air
         const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
         const RANK_VALUES = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
 
-        // Simplified Hand Scoring (Base Chips * Base Mult)
-        // In real Balatro, these level up and are affected by Jokers
-        const HAND_DEFINITIONS = {
-            'High Card':      { chips: 5,  mult: 1 },
-            'Pair':           { chips: 10, mult: 2 },
-            'Two Pair':       { chips: 20, mult: 2 },
-            'Three of a Kind':{ chips: 30, mult: 3 },
-            'Straight':       { chips: 30, mult: 4 },
-            'Flush':          { chips: 35, mult: 4 },
-            'Full House':     { chips: 40, mult: 4 },
-            'Four of a Kind': { chips: 60, mult: 7 },
+        const HAND_DEFINITIONS = { // Base values
+            'High Card':      { chips: 5,  mult: 1 }, 'Pair':           { chips: 10, mult: 2 },
+            'Two Pair':       { chips: 20, mult: 2 }, 'Three of a Kind':{ chips: 30, mult: 3 },
+            'Straight':       { chips: 30, mult: 4 }, 'Flush':          { chips: 35, mult: 4 },
+            'Full House':     { chips: 40, mult: 4 }, 'Four of a Kind': { chips: 60, mult: 7 },
             'Straight Flush': { chips: 100, mult: 8 },
-            // 'Royal Flush': { chips: 120, mult: 10 }, // Often just a high Straight Flush
         };
 
         const MAX_HAND_SIZE = 8;
         const CARDS_TO_PLAY_MAX = 5;
         const INITIAL_HANDS = 4;
         const INITIAL_DISCARDS = 3;
-        const WINNING_ANTE = 8; // Beat Ante 8 to win
+        const MAX_FAMILIARS = 5;
+        const WINNING_ANTE = 8;
+        const IMBUEMENT_COST = 5;
 
+        // --- Game State Variables ---
         let deck = [];
-        let hand = [];
+        let hand = []; // Array of card objects { id, rank, suit, enhancements: [] }
         let discardPile = [];
         let selectedCardIds = [];
-
+        let familiars = []; // Active Jokers { id, name, desc, effect() }
         let currentScore = 0;
-        let currentRound = 1; // Ante
-        let targetScore = 0; // Blind
+        let currentRound = 1;
+        let targetScore = 0;
         let handsLeft = INITIAL_HANDS;
         let discardsLeft = INITIAL_DISCARDS;
-        let mana = 0; // Currency placeholder
+        let mana = 10; // Start with some mana
         let gameOver = false;
         let gameWon = false;
+        let isSelectingForImbue = false; // State for the Imbue Card ability
 
         // --- DOM Elements ---
+        const gameContainer = document.getElementById('game-container');
         const handArea = document.getElementById('hand-area');
         const scoreDisplay = document.getElementById('score-display');
         const targetScoreDisplay = document.getElementById('target-score-display');
@@ -298,21 +387,27 @@
         const messageArea = document.getElementById('message-area');
         const playButton = document.getElementById('play-button');
         const discardButton = document.getElementById('discard-button');
+        const imbueCardButton = document.getElementById('imbue-card-button');
+        const familiarAreaTitle = document.querySelector('#familiar-area h4');
+        const familiarSlots = document.getElementById('familiar-slots');
         const gameOverOverlay = document.getElementById('game-over-overlay');
         const gameWonOverlay = document.getElementById('game-won-overlay');
+        const shopOverlay = document.getElementById('shop-overlay');
+        const shopManaDisplay = document.getElementById('shop-mana-display');
+        const shopItemsContainer = document.getElementById('shop-items');
+        const proceedButton = document.getElementById('proceed-button');
         const newGameButtonLost = document.getElementById('new-game-button-lost');
         const newGameButtonWon = document.getElementById('new-game-button-won');
         const finalRoundLostDisplay = document.getElementById('final-round-lost');
 
-
-        // --- Core Game Logic ---
-
+        // --- Card & Deck Management ---
         function createDeck() {
             deck = [];
             let idCounter = 0;
             for (const suit of SUITS) {
                 for (const rank of RANKS) {
-                    deck.push({ id: idCounter++, rank: rank, suit: suit });
+                    // Card object now includes an empty enhancements array
+                    deck.push({ id: idCounter++, rank: rank, suit: suit, enhancements: [] });
                 }
             }
         }
@@ -320,7 +415,7 @@
         function shuffleDeck(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+                [array[i], array[j]] = [array[j], array[i]];
             }
         }
 
@@ -328,37 +423,32 @@
             const drawnCards = [];
             for (let i = 0; i < count; i++) {
                 if (deck.length === 0) {
-                    if (discardPile.length === 0) {
-                        console.warn("No cards left in deck or discard pile!");
-                        break; // Cannot draw more cards
-                    }
-                    // Reshuffle discard pile into deck
+                    if (discardPile.length === 0) break;
                     deck = [...discardPile];
                     discardPile = [];
                     shuffleDeck(deck);
                     setMessage("Reshuffling discard pile...");
                 }
-                 if (deck.length > 0) { // Check again after potential reshuffle
+                if (deck.length > 0) {
                     drawnCards.push(deck.pop());
-                 } else {
-                     break; // Stop if still no cards
-                 }
+                } else break;
             }
             hand = [...hand, ...drawnCards];
         }
 
         function dealInitialHand() {
             hand = [];
-            discardPile = [];
+            discardPile = []; // Clear discard pile as well
             drawCards(MAX_HAND_SIZE);
         }
 
+        // --- Rendering ---
         function renderHand() {
-            handArea.innerHTML = ''; // Clear existing cards
-            hand.sort((a,b) => RANK_VALUES[a.rank] - RANK_VALUES[b.rank]); // Sort hand for display
+            handArea.innerHTML = '';
+            hand.sort((a, b) => RANK_VALUES[a.rank] - RANK_VALUES[b.rank]);
             hand.forEach(card => {
                 const cardElement = document.createElement('div');
-                cardElement.classList.add('card');
+                cardElement.classList.add('card', `suit-${card.suit}`);
                 cardElement.dataset.cardId = card.id;
 
                 const rankElement = document.createElement('div');
@@ -366,21 +456,35 @@
                 rankElement.textContent = card.rank;
 
                 const suitElement = document.createElement('div');
-                suitElement.classList.add('card-suit', `suit-${card.suit}`);
+                suitElement.classList.add('card-suit');
                 suitElement.textContent = card.suit;
-
-                // Add suit color class to the main card element for potential styling override
-                 cardElement.classList.add(`suit-${card.suit}`);
 
                 cardElement.appendChild(rankElement);
                 cardElement.appendChild(suitElement);
 
+                // Display enhancements
+                card.enhancements.forEach(enh => {
+                    const badge = document.createElement('div');
+                    badge.classList.add('enhancement-badge');
+                    if (enh.type === 'chips') {
+                        badge.classList.add('enhancement-chips');
+                        badge.textContent = `+${enh.value}C`;
+                    } else if (enh.type === 'mult') {
+                        badge.classList.add('enhancement-mult');
+                        badge.textContent = `+${enh.value}M`;
+                    }
+                    // Add other enhancement types here (Wild, Glass, etc.) if implemented
+                    cardElement.appendChild(badge);
+                });
 
                 if (selectedCardIds.includes(card.id)) {
                     cardElement.classList.add('selected');
                 }
+                if (isSelectingForImbue) {
+                     cardElement.classList.add('selectable-for-ability');
+                }
 
-                cardElement.addEventListener('click', () => selectCard(card.id));
+                cardElement.addEventListener('click', () => handleCardClick(card.id));
                 handArea.appendChild(cardElement);
             });
             updateButtonStates();
@@ -392,164 +496,263 @@
             roundDisplay.textContent = currentRound;
             handsLeftDisplay.textContent = handsLeft;
             discardsLeftDisplay.textContent = discardsLeft;
-            manaDisplay.textContent = mana; // Update mana display
+            manaDisplay.textContent = mana;
 
-            if (gameOver) {
-                finalRoundLostDisplay.textContent = currentRound;
-                gameOverOverlay.style.display = 'flex';
-            } else {
-                gameOverOverlay.style.display = 'none';
-            }
+            familiarAreaTitle.textContent = `Familiars (${familiars.length}/${MAX_FAMILIARS})`;
+            familiarSlots.innerHTML = '';
+            familiars.forEach(f => {
+                const familiarEl = document.createElement('div');
+                familiarEl.classList.add('familiar-card');
+                familiarEl.innerHTML = `
+                    <div class="familiar-name">${f.name}</div>
+                    <div class="familiar-desc">${f.desc}</div>
+                `;
+                familiarSlots.appendChild(familiarEl);
+            });
 
-            if (gameWon) {
-                 gameWonOverlay.style.display = 'flex';
-            } else {
-                gameWonOverlay.style.display = 'none';
-            }
+            gameOverOverlay.style.display = gameOver ? 'flex' : 'none';
+            gameWonOverlay.style.display = gameWon ? 'flex' : 'none';
+            shopOverlay.style.display = 'none'; // Ensure shop is hidden unless explicitly shown
+
+            if(gameOver) finalRoundLostDisplay.textContent = currentRound;
         }
 
-        function setMessage(message) {
+        function setMessage(message, duration = 0) {
             messageArea.textContent = message;
+             if (duration > 0) {
+                 setTimeout(() => {
+                     // Clear message only if it hasn't changed since
+                     if (messageArea.textContent === message) {
+                         messageArea.textContent = getDefaultMessage();
+                     }
+                 }, duration);
+             }
         }
 
-        function selectCard(cardId) {
+         function getDefaultMessage() {
+            if (isSelectingForImbue) return `Select a card to Imbue (Cost ${IMBUEMENT_COST} Mana). Click Imbue button again to cancel.`;
+            if (handsLeft <= 0 && discardsLeft > 0) return "Out of hands! You must discard.";
+            return `Trial ${currentRound}. Target: ${targetScore}. Select cards or use an ability.`;
+         }
+
+
+        // --- Card Interaction ---
+        function handleCardClick(cardId) {
             if (gameOver || gameWon) return;
 
+            if (isSelectingForImbue) {
+                executeImbueAbility(cardId);
+            } else {
+                toggleCardSelection(cardId);
+            }
+        }
+
+        function toggleCardSelection(cardId) {
             const index = selectedCardIds.indexOf(cardId);
             if (index > -1) {
                 selectedCardIds.splice(index, 1); // Deselect
             } else {
-                 if (selectedCardIds.length < CARDS_TO_PLAY_MAX) {
-                      selectedCardIds.push(cardId); // Select if less than max allowed
-                 } else {
-                     setMessage(`You can only select up to ${CARDS_TO_PLAY_MAX} cards to play.`);
-                 }
+                if (selectedCardIds.length < CARDS_TO_PLAY_MAX) {
+                    selectedCardIds.push(cardId); // Select
+                } else {
+                    setMessage(`You can only select up to ${CARDS_TO_PLAY_MAX} cards to play.`, 2000);
+                }
             }
-            renderHand(); // Re-render to show selection change
+            renderHand();
         }
+
 
         function updateButtonStates() {
             const selectionCount = selectedCardIds.length;
-            playButton.disabled = gameOver || gameWon || selectionCount === 0 || handsLeft <= 0;
-            discardButton.disabled = gameOver || gameWon || selectionCount === 0 || discardsLeft <= 0;
+            const canPlay = !gameOver && !gameWon && selectionCount > 0 && handsLeft > 0 && !isSelectingForImbue;
+            const canDiscard = !gameOver && !gameWon && selectionCount > 0 && discardsLeft > 0 && !isSelectingForImbue;
+            const canImbue = !gameOver && !gameWon && mana >= IMBUEMENT_COST && hand.length > 0; // Can activate selection
+
+            playButton.disabled = !canPlay;
+            discardButton.disabled = !canDiscard;
+            imbueCardButton.disabled = !(canImbue || isSelectingForImbue); // Enable if can start or is cancelling
         }
 
 
+        // --- Game Actions ---
         function playSelectedHand() {
             if (playButton.disabled) return;
 
             const selectedCards = hand.filter(card => selectedCardIds.includes(card.id));
-            if (selectedCards.length === 0) {
-                setMessage("Select cards to play a hand.");
+            if (selectedCards.length === 0 || selectedCards.length > CARDS_TO_PLAY_MAX) {
+                setMessage("Invalid selection for playing.", 2000);
                 return;
             }
-             if (selectedCards.length > CARDS_TO_PLAY_MAX) {
-                 setMessage(`You cannot play more than ${CARDS_TO_PLAY_MAX} cards.`);
-                 return; // Should be prevented by selectCard, but double check
-             }
 
             const evaluation = evaluateHand(selectedCards);
             const scoreGained = evaluation.score;
             currentScore += scoreGained;
             handsLeft--;
 
-             // Add played cards to discard pile
             discardPile.push(...selectedCards);
-
-            // Remove played cards from hand
             hand = hand.filter(card => !selectedCardIds.includes(card.id));
-            selectedCardIds = []; // Clear selection
+            selectedCardIds = [];
 
-            // Draw replacements
             const cardsToDraw = Math.min(selectedCards.length, MAX_HAND_SIZE - hand.length);
             drawCards(cardsToDraw);
 
-            setMessage(`Played ${evaluation.handName}! Score: ${evaluation.chips} x ${evaluation.mult} = ${scoreGained}`);
-            checkRoundEnd(); // Check if round ends after playing
+            setMessage(`Played ${evaluation.handName}! Score: ${evaluation.baseChips}(+${evaluation.enhChips}) x ${evaluation.baseMult}(+${evaluation.enhMult}) x ${evaluation.famMult} = ${scoreGained}`);
+            checkRoundEnd(); // Check immediately after score update
             renderHand();
             renderUI();
         }
 
         function discardSelectedCards() {
-             if (discardButton.disabled) return;
+            if (discardButton.disabled) return;
 
             const selectedCards = hand.filter(card => selectedCardIds.includes(card.id));
-             if (selectedCards.length === 0) {
-                setMessage("Select cards to discard.");
-                return;
-            }
+            if (selectedCards.length === 0) {
+                 setMessage("Select cards to discard.", 2000);
+                 return;
+             }
 
             discardsLeft--;
-
-            // Add discarded cards to discard pile
             discardPile.push(...selectedCards);
-
-            // Remove discarded cards from hand
             hand = hand.filter(card => !selectedCardIds.includes(card.id));
-            selectedCardIds = []; // Clear selection
+            selectedCardIds = [];
 
-            // Draw replacements
-             const cardsToDraw = Math.min(selectedCards.length, MAX_HAND_SIZE - hand.length);
+            const cardsToDraw = Math.min(selectedCards.length, MAX_HAND_SIZE - hand.length);
             drawCards(cardsToDraw);
 
             setMessage(`Discarded ${selectedCards.length} card(s).`);
-            checkRoundEnd(); // Check if round ends after discarding (if out of hands/discards)
+            checkRoundEnd(); // Check if out of actions
             renderHand();
             renderUI();
         }
 
-        // --- Hand Evaluation Logic ---
+        // --- Abilities (Cantrips) ---
+         function toggleImbueMode() {
+             if (imbueCardButton.disabled && !isSelectingForImbue) return; // Don't activate if disabled normally
 
+             if (isSelectingForImbue) {
+                 // Cancel Imbue Mode
+                 isSelectingForImbue = false;
+                 setMessage(getDefaultMessage());
+             } else {
+                  // Enter Imbue Mode
+                 if (mana < IMBUEMENT_COST) {
+                     setMessage(`Not enough Mana to Imbue (Cost ${IMBUEMENT_COST}).`, 2000);
+                     return;
+                 }
+                 isSelectingForImbue = true;
+                 selectedCardIds = []; // Clear regular selection
+                 setMessage(getDefaultMessage());
+             }
+             renderHand(); // Update card appearance (highlight)
+             updateButtonStates(); // Update button states
+         }
+
+         function executeImbueAbility(cardId) {
+             if (!isSelectingForImbue || mana < IMBUEMENT_COST) return;
+
+             const cardToImbue = hand.find(card => card.id === cardId);
+             if (!cardToImbue) return; // Card not found
+
+             // Apply a random simple enhancement
+             mana -= IMBUEMENT_COST;
+             const isChips = Math.random() < 0.6; // 60% chance for chips, 40% for mult
+             if (isChips) {
+                 const chipsValue = 5 + Math.floor(Math.random() * 6); // +5 to +10 chips
+                 addEnhancementToCard(cardToImbue, 'chips', chipsValue);
+                 setMessage(`Imbued +${chipsValue} Chips onto ${cardToImbue.rank}${cardToImbue.suit}!`, 2500);
+             } else {
+                 const multValue = 1 + Math.floor(Math.random() * 2); // +1 to +2 mult
+                 addEnhancementToCard(cardToImbue, 'mult', multValue);
+                 setMessage(`Imbued +${multValue} Mult onto ${cardToImbue.rank}${cardToImbue.suit}!`, 2500);
+             }
+
+             isSelectingForImbue = false; // Exit imbue mode
+             renderHand();
+             renderUI();
+             updateButtonStates();
+         }
+
+         function addEnhancementToCard(card, type, value) {
+              if (!card) return;
+              // Basic: just add. Could check for existing enhancements of same type later.
+             card.enhancements.push({ type: type, value: value });
+         }
+
+        // --- Hand Evaluation (with Enhancements and Familiars) ---
         function evaluateHand(cards) {
-            if (!cards || cards.length === 0) {
-                return { handName: 'None', chips: 0, mult: 0, score: 0 };
-            }
+            if (!cards || cards.length === 0) return { /* ... base empty return ... */ };
 
             const handInfo = checkPokerHand(cards);
             const definition = HAND_DEFINITIONS[handInfo.name] || HAND_DEFINITIONS['High Card'];
 
-            // Apply any potential modifiers here (e.g., from Jokers/Familiars if implemented)
-            let finalChips = definition.chips;
-            let finalMult = definition.mult;
+            let baseChips = definition.chips;
+            let baseMult = definition.mult;
+            let enhancementChips = 0;
+            let enhancementMult = 0;
+            let familiarMultiplier = 1; // Multiplicative bonus from familiars
+             let familiarFlatMult = 0; // Additive bonus from familiars
+             let familiarFlatChips = 0; // Additive bonus from familiars
 
-            // Example: Add chips based on specific ranks in the played hand (like Balatro's enhancements)
+            // 1. Add chips/mult from played cards themselves (e.g., standard card values in Balatro)
             cards.forEach(card => {
-                 if (['A', 'K', 'Q', 'J'].includes(card.rank)) finalChips += 2; // Small bonus for face cards
-                 else if (['T'].includes(card.rank)) finalChips += 1;
+                baseChips += RANK_VALUES[card.rank] // Add rank value as base chips
+                // Apply enhancements ON the cards
+                card.enhancements.forEach(enh => {
+                    if (enh.type === 'chips') enhancementChips += enh.value;
+                    else if (enh.type === 'mult') enhancementMult += enh.value;
+                });
             });
 
-            // Example: Small mult bonus for flushes or straights beyond base
-            if (handInfo.name === 'Flush' && cards.length === 5) finalMult += 1;
-            if (handInfo.name === 'Straight' && cards.length === 5) finalMult += 1;
+            // 2. Apply Familiar (Joker) effects
+            familiars.forEach(familiar => {
+                 if (familiar.effect) {
+                     const effectResult = familiar.effect(cards, hand, handInfo); // Pass played cards, full hand, hand type info
+                     if (effectResult) {
+                         familiarFlatChips += effectResult.chips || 0;
+                         familiarFlatMult += effectResult.addMult || 0;
+                         familiarMultiplier *= effectResult.multMult || 1;
+                     }
+                 }
+            });
 
+            // Calculate final score
+            const finalChips = baseChips + enhancementChips + familiarFlatChips;
+            const finalMult = (baseMult + enhancementMult + familiarFlatMult) * familiarMultiplier;
+            const score = Math.round(finalChips * finalMult); // Round the score
 
-            const score = finalChips * finalMult;
-            return { handName: handInfo.name, chips: finalChips, mult: finalMult, score: score };
+            return {
+                handName: handInfo.name,
+                baseChips: baseChips,
+                enhChips: enhancementChips + familiarFlatChips, // Total added chips
+                baseMult: baseMult,
+                enhMult: enhancementMult + familiarFlatMult, // Total added mult (before multiplication)
+                famMult: familiarMultiplier, // Multiplicative factor
+                score: score
+            };
         }
 
 
         function checkPokerHand(cards) {
-             // Sort cards by rank value for easier checking
-            const sortedCards = [...cards].sort((a, b) => RANK_VALUES[a.rank] - RANK_VALUES[b.rank]);
+            // (This function remains the same as before)
+             const sortedCards = [...cards].sort((a, b) => RANK_VALUES[a.rank] - RANK_VALUES[b.rank]);
             const ranks = sortedCards.map(c => c.rank);
             const suits = sortedCards.map(c => c.suit);
             const rankValues = sortedCards.map(c => RANK_VALUES[c.rank]);
 
             const rankCounts = {};
             ranks.forEach(rank => { rankCounts[rank] = (rankCounts[rank] || 0) + 1; });
-            const counts = Object.values(rankCounts).sort((a, b) => b - a); // [4] or [3, 1] or [2, 2, 1] etc.
+            const counts = Object.values(rankCounts).sort((a, b) => b - a);
 
             const isFlush = new Set(suits).size === 1;
-            // Check for standard straight
-            let isStraight = rankValues.every((val, i, arr) => i === 0 || val === arr[i-1] + 1);
-             // Check for A-2-3-4-5 low straight (Ace value is 14, need 2,3,4,5)
-            if (!isStraight && rankValues.includes(14) && rankValues.includes(2) && rankValues.includes(3) && rankValues.includes(4) && rankValues.includes(5) && cards.length === 5) {
-                 isStraight = true;
-                 // Note: For scoring, you might treat Ace as 1 here, but keep RANK_VALUES consistent for sorting/general use
-            }
+            let isStraight = false;
+             if (cards.length >= 4) { // Need at least 4 for a straight check usually
+                 isStraight = rankValues.every((val, i, arr) => i === 0 || val === arr[i-1] + 1);
+                 // A-2-3-4-5 check
+                if (!isStraight && cards.length === 5 && rankValues.includes(14) && rankValues.includes(2) && rankValues.includes(3) && rankValues.includes(4) && rankValues.includes(5)) {
+                     isStraight = true;
+                 }
+             }
 
-
-             // Determine hand type based on cards *played* (can be 1 to 5)
              if (cards.length === 5) {
                 if (isStraight && isFlush) return { name: 'Straight Flush' };
                 if (counts[0] === 4) return { name: 'Four of a Kind' };
@@ -562,26 +765,20 @@
              } else if (cards.length === 4) {
                  if (counts[0] === 4) return { name: 'Four of a Kind' };
                  if (counts[0] === 3) return { name: 'Three of a Kind' };
-                 if (counts[0] === 2 && counts[1] === 2) return { name: 'Two Pair' };
+                 if (counts[0] === 2 && counts[1] === 2) return { name: 'Two Pair' }; // Technically possible, though maybe not scoreable
                  if (counts[0] === 2) return { name: 'Pair' };
-                 // Could add 4-card flush/straight checks if desired
              } else if (cards.length === 3) {
                  if (counts[0] === 3) return { name: 'Three of a Kind' };
                  if (counts[0] === 2) return { name: 'Pair' };
-                 // Could add 3-card flush/straight checks
              } else if (cards.length === 2) {
                  if (counts[0] === 2) return { name: 'Pair' };
              }
-             // Default or single card
-             return { name: 'High Card' }; // Or Pair if length was 2 and it was a pair
+             return { name: 'High Card' };
         }
 
-
         // --- Round and Game Flow ---
-
         function calculateRoundTarget(round) {
-            // Simple scaling blind - adjust as needed for balance
-            return Math.floor(100 * Math.pow(1.6, round - 1));
+             return Math.floor(100 * Math.pow(1.7, round - 1)) + (round - 1) * 50; // Steeper scaling
         }
 
         function startRound(roundNum) {
@@ -590,54 +787,43 @@
             currentScore = 0;
             handsLeft = INITIAL_HANDS;
             discardsLeft = INITIAL_DISCARDS;
-            selectedCardIds = []; // Clear selection from previous round
+            selectedCardIds = [];
+            isSelectingForImbue = false; // Reset ability state
 
-            // Only deal a new hand if starting the very first round
-            if (currentRound === 1) {
-                 createDeck();
-                 shuffleDeck(deck);
-                 dealInitialHand();
-            } else {
-                 // Keep existing hand, maybe draw up to max if needed (optional)
-                 const cardsToDraw = MAX_HAND_SIZE - hand.length;
-                 if (cardsToDraw > 0) drawCards(cardsToDraw);
-            }
+            // Draw up to hand size if needed (usually after shop)
+            const cardsToDraw = MAX_HAND_SIZE - hand.length;
+            if (cardsToDraw > 0) drawCards(cardsToDraw);
 
-
-            setMessage(`Starting Trial ${currentRound}. Beat ${targetScore} points.`);
+            setMessage(getDefaultMessage());
             renderHand();
             renderUI();
         }
 
         function checkRoundEnd() {
-            // Round ends if no hands left, OR if score meets target (early win for the round)
              if (currentScore >= targetScore) {
-                const manaEarned = Math.floor((currentScore - targetScore) / 10) + (currentRound * 2); // Simple mana gain formula
+                // Round Cleared - Go to Shop
+                const baseMana = Math.floor((currentScore - targetScore) / 15) + (currentRound * 3);
+                const interest = Math.floor(mana / 5); // Balatro-like interest
+                const manaEarned = baseMana + interest;
                 mana += manaEarned;
-                setMessage(`Trial ${currentRound} Cleared! Gained ${manaEarned} Mana.`);
-                // Delay starting next round slightly
-                setTimeout(() => {
-                    if (currentRound >= WINNING_ANTE) {
-                         winGame();
-                    } else {
-                        startRound(currentRound + 1);
-                    }
-                }, 1500);
-             } else if (handsLeft <= 0 && discardsLeft <= 0) { // Also check discards, must use one or the other
-                 // If out of hands AND discards, and score is too low -> Game Over
-                 if (currentScore < targetScore) {
-                     loseGame();
-                 }
-                 // If score is high enough here, the earlier check already handled it.
-                 // If somehow hands are 0 but score isn't enough, but discards ARE left, the player MUST discard.
+                setMessage(`Trial ${currentRound} Cleared! Gained ${manaEarned} Mana (+${interest} interest).`);
+                 // Defer showing shop slightly
+                 setTimeout(() => {
+                     if (currentRound >= WINNING_ANTE) {
+                          winGame();
+                     } else {
+                         openShop();
+                     }
+                 }, 1500);
+             } else if (handsLeft <= 0 && discardsLeft <= 0) {
+                 // Out of actions and score too low
+                 loseGame();
              } else if (handsLeft <= 0 && currentScore < targetScore) {
-                 setMessage("Out of hands! You must discard if possible.");
-                 // Buttons will update to only allow discard if available
-                 updateButtonStates();
+                  setMessage(getDefaultMessage()); // Update message to prompt discard
+                  updateButtonStates();
              }
-             // Otherwise, continue the round
+              // Otherwise, continue the round...
         }
-
 
         function loseGame() {
             gameOver = true;
@@ -645,12 +831,11 @@
             renderUI(); // Show game over screen
         }
 
-         function winGame() {
+        function winGame() {
             gameWon = true;
             setMessage(`Congratulations! You beat all ${WINNING_ANTE} Trials!`);
             renderUI(); // Show game won screen
         }
-
 
         function resetGame() {
             gameOver = false;
@@ -659,30 +844,226 @@
             hand = [];
             discardPile = [];
             selectedCardIds = [];
+            familiars = [];
             currentScore = 0;
             currentRound = 1;
             targetScore = 0;
             handsLeft = INITIAL_HANDS;
             discardsLeft = INITIAL_DISCARDS;
-            mana = 0;
+            mana = 10; // Reset mana
+            isSelectingForImbue = false;
 
+            // Hide overlays
             gameOverOverlay.style.display = 'none';
             gameWonOverlay.style.display = 'none';
+            shopOverlay.style.display = 'none';
 
-            initGame();
+            createDeck();
+            shuffleDeck(deck);
+            dealInitialHand(); // Deal fresh hand for round 1
+            startRound(1);
         }
 
         function initGame() {
             console.log("Initializing Wizard's Hand...");
-            startRound(1); // Start the first round
+            resetGame(); // Use reset to ensure clean state
         }
+
+        // --- Shop Logic ---
+
+        function openShop() {
+            populateShop();
+            shopManaDisplay.textContent = mana;
+            shopOverlay.style.display = 'flex';
+            setMessage("Welcome to the Arcane Market!"); // Change main message
+        }
+
+        function closeShopAndProceed() {
+            shopOverlay.style.display = 'none';
+            startRound(currentRound + 1); // Proceed to the next round
+        }
+
+        function populateShop() {
+             shopItemsContainer.innerHTML = ''; // Clear previous items
+             const shopOfferings = generateShopItems(3); // Generate 3 items (e.g., 2 Jokers, 1 Tarot)
+
+             if (shopOfferings.length === 0) {
+                  shopItemsContainer.innerHTML = '<p>The market seems empty this time...</p>';
+             }
+
+            shopOfferings.forEach((item, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.classList.add('shop-item', `shop-item-type-${item.type}`);
+                itemEl.innerHTML = `
+                    <div class="shop-item-info">
+                        <div class="shop-item-name">${item.name} (${item.type})</div>
+                        <div class="shop-item-desc">${item.desc}</div>
+                    </div>
+                    <div class="shop-item-cost">${item.cost} Mana</div>
+                    <button class="shop-item-buy-button" data-item-index="${index}" ${mana < item.cost ? 'disabled' : ''}>Buy</button>
+                `;
+                itemEl.querySelector('.shop-item-buy-button').addEventListener('click', (e) => {
+                    buyShopItem(item, e.target);
+                });
+                shopItemsContainer.appendChild(itemEl);
+            });
+
+             // Update mana display within the shop overlay itself
+             shopManaDisplay.textContent = mana;
+        }
+
+        function generateShopItems(count) {
+            const offerings = [];
+            const availableFamiliars = Object.values(FAMILIAR_POOL).filter(f => !familiars.some(owned => owned.id === f.id)); // Don't offer owned familiars
+            const availableScrolls = Object.values(SCROLL_POOL);
+
+            for (let i = 0; i < count; i++) {
+                let item = null;
+                // Simple logic: try for familiar first if space available, else scroll
+                const tryFamiliar = Math.random() < 0.65 && familiars.length < MAX_FAMILIARS && availableFamiliars.length > 0;
+
+                if (tryFamiliar) {
+                    const fIndex = Math.floor(Math.random() * availableFamiliars.length);
+                    item = { ...availableFamiliars[fIndex], type: 'Familiar' }; // Add type property
+                     availableFamiliars.splice(fIndex, 1); // Remove from pool for this shop instance
+                } else if (availableScrolls.length > 0) {
+                     const sIndex = Math.floor(Math.random() * availableScrolls.length);
+                     item = { ...availableScrolls[sIndex], type: 'Scroll' }; // Add type property
+                     // Scrolls can potentially be offered multiple times, so don't necessarily remove from pool
+                }
+
+                if (item) {
+                     // Dynamic cost example
+                     item.cost = item.baseCost + Math.floor(currentRound * 1.5);
+                     offerings.push(item);
+                }
+            }
+            return offerings;
+        }
+
+
+        function buyShopItem(item, buttonElement) {
+            if (mana < item.cost || buttonElement.disabled) return;
+
+            if (item.type === 'Familiar' && familiars.length >= MAX_FAMILIARS) {
+                 setMessage("Cannot buy Familiar, slots are full (max " + MAX_FAMILIARS + ").", 3000);
+                 return; // Prevent buying if full
+            }
+
+
+            mana -= item.cost;
+
+            if (item.type === 'Familiar') {
+                 familiars.push(item); // Add to active familiars
+                 setMessage(`Acquired Familiar: ${item.name}!`, 2500);
+            } else if (item.type === 'Scroll') {
+                 item.effect(hand); // Execute scroll effect immediately
+                 setMessage(`Used Scroll: ${item.name}! ${item.effectDesc || ''}`, 3000);
+            }
+
+            // Update UI
+            shopManaDisplay.textContent = mana; // Update shop mana
+             renderUI(); // Update main UI (mana, familiar count)
+
+            // Disable the button for the bought item
+            buttonElement.disabled = true;
+            buttonElement.textContent = 'Bought';
+
+            // Re-evaluate purchase power for remaining items
+             document.querySelectorAll('.shop-item-buy-button').forEach(btn => {
+                const idx = parseInt(btn.dataset.itemIndex, 10);
+                 const btnItem = Array.from(shopItemsContainer.children)[idx]; // Find corresponding item div
+                 if (btnItem) {
+                     // Find the cost text within the item div to get the actual cost
+                     const costText = btnItem.querySelector('.shop-item-cost').textContent;
+                     const cost = parseInt(costText.split(' ')[0], 10); // Extract number
+                    if (!btn.disabled && mana < cost) { // Disable if cannot afford anymore
+                        btn.disabled = true;
+                     }
+                 }
+            });
+        }
+
+        // --- Familiar (Joker) Definitions ---
+        const FAMILIAR_POOL = {
+            'goblin': {
+                id: 'goblin', name: "Greedy Goblin", baseCost: 5,
+                desc: "+4 Mult if played hand contains 3 or more 🌳 cards.",
+                effect: (playedCards) => {
+                    const earthCount = playedCards.filter(c => c.suit === '🌳').length;
+                    return earthCount >= 3 ? { addMult: 4 } : {};
+                }
+            },
+            'imp': {
+                id: 'imp', name: "Fiery Imp", baseCost: 6,
+                desc: "+20 Chips for every 🔥 card played.",
+                effect: (playedCards) => {
+                    const fireCount = playedCards.filter(c => c.suit === '🔥').length;
+                    return { chips: fireCount * 20 };
+                }
+            },
+             'sprite': {
+                 id: 'sprite', name: "Wind Sprite", baseCost: 7,
+                 desc: "+1 Mult for each card left in hand after playing (max +4).",
+                 effect: (playedCards, currentHand) => {
+                     // currentHand here would be the hand *before* playing, need cards remaining
+                     const cardsRemaining = MAX_HAND_SIZE - playedCards.length; // Estimate based on max size
+                     const bonusMult = Math.min(cardsRemaining, 4);
+                     return { addMult: bonusMult };
+                 }
+             },
+             'golem': {
+                 id: 'golem', name: "Stone Golem", baseCost: 4,
+                 desc: "+50 Chips if played hand is exactly 3 cards.",
+                 effect: (playedCards) => {
+                     return playedCards.length === 3 ? { chips: 50 } : {};
+                 }
+             },
+        };
+
+        // --- Scroll (Tarot) Definitions ---
+         const SCROLL_POOL = {
+            'strength': {
+                id: 'strength', name: "Scroll of Strength", baseCost: 4,
+                 desc: "Add +15 Chips enhancement to 2 random cards in hand.",
+                 effectDesc: "Enhanced 2 cards.",
+                 effect: (currentHand) => {
+                     const eligibleCards = currentHand.filter(c => c.enhancements.length < 2); // Limit enhancements per card?
+                     shuffleDeck(eligibleCards); // Shuffle to pick random
+                     for(let i = 0; i < Math.min(2, eligibleCards.length); i++) {
+                         addEnhancementToCard(eligibleCards[i], 'chips', 15);
+                     }
+                 }
+            },
+            'temperance': {
+                 id: 'temperance', name: "Scroll of Temperance", baseCost: 3,
+                 desc: "Gain 1 Discard use for this round.",
+                 effectDesc: "+1 Discard.",
+                 effect: () => { discardsLeft++; renderUI(); } // Directly modify state
+            },
+             'alchemist': {
+                 id: 'alchemist', name: "Scroll of Alchemy", baseCost: 5,
+                 desc: "Convert up to 2 non-🔥 cards in hand to 🔥.",
+                 effectDesc: "Converted up to 2 cards.",
+                 effect: (currentHand) => {
+                     const nonFireCards = currentHand.filter(c => c.suit !== '🔥');
+                     shuffleDeck(nonFireCards);
+                     for(let i = 0; i < Math.min(2, nonFireCards.length); i++) {
+                         nonFireCards[i].suit = '🔥';
+                     }
+                      renderHand(); // Rerender hand to show suit change
+                 }
+             },
+         };
+
 
         // --- Event Listeners ---
         playButton.addEventListener('click', playSelectedHand);
         discardButton.addEventListener('click', discardSelectedCards);
+        imbueCardButton.addEventListener('click', toggleImbueMode);
         newGameButtonLost.addEventListener('click', resetGame);
         newGameButtonWon.addEventListener('click', resetGame);
-
+        proceedButton.addEventListener('click', closeShopAndProceed);
 
         // --- Initial Game Start ---
         document.addEventListener('DOMContentLoaded', initGame);
